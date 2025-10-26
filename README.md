@@ -1,6 +1,13 @@
 # Kana - 日语假名练习工具
 
+[在线访问](https://kanamind.netlify.app/)
+
 日语假名学习工具，帮助初学者记忆平假名、片假名和罗马音。
+
+<img width="1127" height="881" alt="20251026182426" src="https://github.com/user-attachments/assets/1aa47838-2dda-4e8c-b144-bb0ba867e52c" />
+<img width="1127" height="881" alt="20251026182848" src="https://github.com/user-attachments/assets/240f2165-f567-4483-a415-a8f3afccc90c" />
+<img width="1127" height="881" alt="20251026182438" src="https://github.com/user-attachments/assets/2baa8ec5-f477-4ada-ba1b-e4da0ac3652c" />
+
 
 ## 功能特性
 
