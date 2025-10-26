@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
+import Script from "next/script";
 
 import "./globals.css";
 
@@ -37,6 +38,11 @@ export default function RootLayout({
         >
           {children}
         </ThemeProvider>
+        <Script
+          defer
+          src="https://cloud.umami.is/script.js"
+          data-website-id="979d9da6-8aee-4fe7-96d4-127b24e6705a"
+        />
       </body>
     </html>
   );
