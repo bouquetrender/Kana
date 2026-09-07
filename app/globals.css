@@ -700,3 +700,222 @@ kbd {
     transition-duration: 0.01ms !important;
   }
 }
+
+.mode-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.mode-options button {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.mode-options button[aria-pressed="true"] {
+  background: #2b3523;
+  border-color: #9cbd7d;
+  color: var(--primary);
+}
+.mastery-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 18px 20px 0;
+}
+.mastery-controls button {
+  min-width: 140px;
+  height: 42px;
+  font-size: 13px;
+}
+.mastery-controls button[aria-pressed="true"] {
+  background: #2b3523;
+  border-color: #9cbd7d;
+  color: var(--primary);
+  opacity: 1;
+}
+.answer-form {
+  max-width: 470px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+.answer-form label {
+  display: block;
+  text-align: left;
+  font-size: 13px;
+  margin-bottom: 10px;
+  color: var(--muted-foreground);
+}
+.answer-input-row {
+  display: flex;
+  gap: 10px;
+}
+.answer-input-row input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--foreground);
+  padding: 10px 12px;
+  font-size: 18px;
+}
+.answer-input-row input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.answer-input-row input[aria-invalid="true"] {
+  border-color: var(--destructive);
+}
+.answer-input-row button {
+  height: 46px;
+}
+.answer-feedback {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--primary);
+}
+.answer-feedback.is-incorrect {
+  color: var(--destructive);
+}
+.summary-layout {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.summary-card {
+  padding: 28px;
+}
+.summary-card h1 {
+  font-size: 24px;
+}
+.summary-overview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 40px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--border);
+}
+.summary-overview > div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.summary-overview span {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.summary-overview strong {
+  font-size: 25px;
+  color: var(--primary);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.summary-overview small {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.summary-counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 24px 0;
+}
+.summary-counts > div {
+  padding: 15px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+.summary-counts dt {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.summary-counts dd {
+  margin-top: 9px;
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.summary-review h2 {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  font-size: 14px;
+}
+.summary-review h2 span {
+  color: var(--primary);
+  font-size: 12px;
+}
+.summary-review > p {
+  margin-top: 15px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.review-kana-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.review-kana-list > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 56px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.review-kana-list strong {
+  font-size: 22px;
+  font-weight: 500;
+}
+.review-kana-list small {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.summary-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+.summary-actions button {
+  height: 42px;
+}
+.storage-error {
+  color: var(--destructive);
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+@media (max-width: 680px) {
+  .mastery-controls {
+    gap: 9px;
+    margin-inline: 16px;
+  }
+  .mastery-controls button {
+    min-width: 0;
+    flex: 1;
+  }
+  .summary-card {
+    padding: 20px;
+  }
+  .summary-overview {
+    gap: 22px;
+  }
+  .summary-counts {
+    gap: 8px;
+  }
+  .summary-counts > div {
+    padding: 12px;
+  }
+  .summary-actions {
+    flex-direction: column;
+  }
+  .answer-input-row button {
+    padding: 0 12px;
+  }
+}

@@ -73,3 +73,10 @@ test("零张和单张范围正确处理", () => {
   assert.deepEqual(shuffleKana([]), [])
   assert.deepEqual(shuffleKana([kanaData[0]], kanaData[0]), [kanaData[0]])
 })
+
+test("清音范围包含 46 个假名和拨音，不包含浊音", () => {
+  const pool = filterKana({ ...defaultSettings, selectionMode: "seion" })
+  assert.equal(pool.length, 46)
+  assert.ok(pool.some(kana => kana.hiragana === "ん"))
+  assert.ok(pool.every(kana => !dakuonRows.includes(kana.row)))
+})

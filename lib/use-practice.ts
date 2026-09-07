@@ -1,52 +1,103 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { type KanaChar, type KanaSettings } from "./kana-data"
-import { filterKana, shuffleKana } from "./practice"
+import { useCallback, useEffect, useMemo, useReducer } from "react"
+import { type KanaChar, type KanaSettings, type Mastery } from "./kana-data"
+import {
+  createSession,
+  filterKana,
+  practiceReducer,
+  sessionCardId,
+  shuffleKana,
+} from "./practice"
 
-interface Session {
-  deck: KanaChar[]
-  index: number
-  round: number
-  isPaused: boolean
-}
+export function usePractice(
+  settings: KanaSettings,
+  mastery: Mastery,
+  recordMastery: (id: string, status: "known" | "learning") => void
+) {
+  const pool = useMemo(() => filterKana(settings, mastery), [settings, mastery])
+  const [session, dispatch] = useReducer(practiceReducer, null)
 
-export function usePractice(settings: KanaSettings) {
-  const pool = useMemo(() => filterKana(settings), [settings])
-  const [session, setSession] = useState<Session | null>(null)
-
-  const start = () => {
-    if (pool.length === 0) return
-    setSession({ deck: shuffleKana(pool), index: 0, round: 1, isPaused: false })
+  const start = (selection: KanaChar[] = pool) => {
+    if (!selection.length) return
+    dispatch({
+      type: "start",
+      session: createSession(
+        settings,
+        selection,
+        shuffleKana(selection),
+        Date.now()
+      ),
+    })
   }
 
   const next = useCallback(() => {
-    if (!session) return
-    const index = session.index + 1
-    setSession(
-      index < session.deck.length
-        ? { ...session, index }
-        : {
-            ...session,
-            deck: shuffleKana(pool, session.deck[session.index]),
-            index: 0,
-            round: session.round + 1,
-          }
-    )
-  }, [pool, session])
+    if (!session || session.status !== "active") return
+    const needsDeck =
+      session.index + 1 === session.deck.length &&
+      (session.settings.roundCount === 0 ||
+        session.round < session.settings.roundCount)
+    dispatch({
+      type: "next",
+      cardId: sessionCardId(session),
+      now: Date.now(),
+      deck: needsDeck
+        ? shuffleKana(session.pool, session.deck[session.index])
+        : session.deck,
+    })
+  }, [session])
 
   useEffect(() => {
-    if (!session || !settings.isAuto || session.isPaused) return
-    const timer = window.setTimeout(next, settings.autoInterval * 1000)
-    return () => window.clearTimeout(timer)
-  }, [next, session, settings.isAuto, settings.autoInterval])
-
-  const togglePause = useCallback(() => {
-    setSession(previous =>
-      previous ? { ...previous, isPaused: !previous.isPaused } : previous
+    if (
+      !session ||
+      session.status !== "active" ||
+      session.settings.practiceMode !== "flashcard" ||
+      !session.settings.isAuto ||
+      session.pausedAt !== null
     )
-  }, [])
-  const reset = useCallback(() => setSession(null), [])
+      return
+    const timer = window.setTimeout(next, session.settings.autoInterval * 1000)
+    return () => window.clearTimeout(timer)
+  }, [next, session])
 
-  return { pool, session, start, next, togglePause, reset }
+  const latestResult =
+    session?.currentResult ?? session?.results[session.results.length - 1]
+  useEffect(() => {
+    if (!latestResult || latestResult.outcome === "skipped") return
+    recordMastery(
+      latestResult.kana.hiragana,
+      ["known", "correct"].includes(latestResult.outcome) ? "known" : "learning"
+    )
+  }, [latestResult, recordMastery])
+
+  const mark = (outcome: "known" | "learning") => {
+    if (session)
+      dispatch({ type: "mark", cardId: sessionCardId(session), outcome })
+  }
+  const answer = (value: string) => {
+    if (session)
+      dispatch({
+        type: "answer",
+        cardId: sessionCardId(session),
+        answer: value,
+      })
+  }
+  const togglePause = useCallback(
+    () => dispatch({ type: "pause", now: Date.now() }),
+    []
+  )
+  const finish = () => dispatch({ type: "finish", now: Date.now() })
+  const reset = () => dispatch({ type: "reset" })
+
+  return {
+    pool,
+    session,
+    start,
+    next,
+    mark,
+    answer,
+    togglePause,
+    finish,
+    reset,
+  }
 }

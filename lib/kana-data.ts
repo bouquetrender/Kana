@@ -114,7 +114,9 @@ export const columns = ["あ", "い", "う", "え", "お", "ん"];
 export const dakuonRows = ["が", "ざ", "だ", "ば", "ぱ"];
 
 export type DisplayType = "hiragana" | "katakana" | "romaji";
-export type SelectionMode = "all" | "row" | "column" | "custom" | "dakuon";
+export type SelectionMode = "all" | "seion" | "row" | "column" | "custom" | "dakuon" | "review";
+export type PracticeMode = "flashcard" | "input";
+export type Mastery = Record<string, "known" | "learning">;
 
 export interface KanaSettings {
   displayType: DisplayType;
@@ -124,5 +126,6 @@ export interface KanaSettings {
   customSelected: KanaChar[];
   isAuto: boolean;
   autoInterval: number; // 秒
+  practiceMode: PracticeMode;
+  roundCount: number; // 0 为无限轮次
 }
-

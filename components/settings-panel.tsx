@@ -24,6 +24,7 @@ import {
   columns,
   dakuonRows,
   type DisplayType,
+  type PracticeMode,
   type SelectionMode,
   type KanaSettings,
   type KanaChar,
@@ -35,6 +36,7 @@ interface SettingsPanelProps {
   onSettingsChange: (settings: KanaSettings) => void
   onStart: () => void
   availableKana: KanaChar[]
+  reviewCount: number
 }
 
 export function SettingsPanel({
@@ -42,6 +44,7 @@ export function SettingsPanel({
   onSettingsChange,
   onStart,
   availableKana,
+  reviewCount,
 }: SettingsPanelProps) {
   const updateSettings = (updates: Partial<KanaSettings>) =>
     onSettingsChange({ ...settings, ...updates })
@@ -104,6 +107,8 @@ export function SettingsPanel({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部假名</SelectItem>
+              <SelectItem value="seion">仅清音（46 个）</SelectItem>
+              <SelectItem value="review">不熟悉（{reviewCount} 个）</SelectItem>
               <SelectItem value="dakuon">浊音 / 半浊音</SelectItem>
               <SelectItem value="row">按行选择（横向）</SelectItem>
               <SelectItem value="column">按段选择（竖向）</SelectItem>
@@ -149,45 +154,95 @@ export function SettingsPanel({
             </div>
           )}
         </div>
-        <div className="settings-section pace-section">
-          <div className="pace-header">
-            <div>
-              <Label htmlFor="auto-mode" className="field-label">
-                <Timer size={15} /> 自动切换
-              </Label>
-            </div>
-            <Switch
-              id="auto-mode"
-              checked={settings.isAuto}
-              onCheckedChange={isAuto => updateSettings({ isAuto })}
-            />
+        <div className="settings-section">
+          <Label id="practice-mode-label" className="field-label">
+            练习方式
+          </Label>
+          <div
+            className="mode-options"
+            role="group"
+            aria-labelledby="practice-mode-label"
+          >
+            {(["flashcard", "input"] as PracticeMode[]).map(mode => (
+              <button
+                key={mode}
+                type="button"
+                aria-pressed={settings.practiceMode === mode}
+                onClick={() => updateSettings({ practiceMode: mode })}
+              >
+                {mode === "flashcard" ? "翻卡记忆" : "输入答案"}
+              </button>
+            ))}
           </div>
-          {settings.isAuto && (
-            <div className="interval-setting">
-              <div>
-                <span id="interval-label">切换间隔</span>
-                <strong>
-                  {settings.autoInterval}
-                  <span> 秒</span>
-                </strong>
-              </div>
-              <Slider
-                aria-labelledby="interval-label"
-                min={1}
-                max={10}
-                step={1}
-                value={[settings.autoInterval]}
-                onValueChange={value =>
-                  updateSettings({ autoInterval: value[0] })
-                }
-              />
-              <div className="slider-labels">
-                <span>1 秒</span>
-                <span>10 秒</span>
-              </div>
-            </div>
-          )}
         </div>
+        <div className="settings-section">
+          <Label htmlFor="round-count" className="field-label">
+            练习轮次
+            <span>
+              {settings.roundCount
+                ? `共 ${availableKana.length * settings.roundCount} 题`
+                : "不限题数"}
+            </span>
+          </Label>
+          <Select
+            value={String(settings.roundCount)}
+            onValueChange={value =>
+              updateSettings({ roundCount: Number(value) })
+            }
+          >
+            <SelectTrigger id="round-count" className="range-select">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[1, 3, 5, 0].map(count => (
+                <SelectItem key={count} value={String(count)}>
+                  {count ? `${count} 轮` : "无限"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {settings.practiceMode === "flashcard" && (
+          <div className="settings-section pace-section">
+            <div className="pace-header">
+              <div>
+                <Label htmlFor="auto-mode" className="field-label">
+                  <Timer size={15} /> 自动切换
+                </Label>
+              </div>
+              <Switch
+                id="auto-mode"
+                checked={settings.isAuto}
+                onCheckedChange={isAuto => updateSettings({ isAuto })}
+              />
+            </div>
+            {settings.isAuto && (
+              <div className="interval-setting">
+                <div>
+                  <span id="interval-label">切换间隔</span>
+                  <strong>
+                    {settings.autoInterval}
+                    <span> 秒</span>
+                  </strong>
+                </div>
+                <Slider
+                  aria-labelledby="interval-label"
+                  min={1}
+                  max={10}
+                  step={1}
+                  value={[settings.autoInterval]}
+                  onValueChange={value =>
+                    updateSettings({ autoInterval: value[0] })
+                  }
+                />
+                <div className="slider-labels">
+                  <span>1 秒</span>
+                  <span>10 秒</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         <div className="start-section">
           <Button
             onClick={onStart}

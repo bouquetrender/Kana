@@ -1,46 +1,138 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { ArrowLeft, ArrowRight, Play, Pause, Eye, EyeOff } from "lucide-react"
+import { useState, useEffect, type FormEvent } from "react"
+import {
+  ArrowLeft,
+  ArrowRight,
+  Play,
+  Pause,
+  Eye,
+  EyeOff,
+  Check,
+  X,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { type KanaChar, type DisplayType } from "@/lib/kana-data"
-import { displayLabels } from "@/lib/practice"
+import { type DisplayType } from "@/lib/kana-data"
+import {
+  displayLabels,
+  sessionCardId,
+  type PracticeSession,
+} from "@/lib/practice"
 
 interface PracticePanelProps {
-  currentKana: KanaChar
-  displayType: DisplayType
-  isAuto: boolean
-  autoInterval: number
-  isPaused: boolean
-  position: number
-  total: number
-  round: number
+  session: PracticeSession
   onNext: () => void
-  onReset: () => void
+  onFinish: () => void
   onTogglePause: () => void
+  onMark: (outcome: "known" | "learning") => void
+  onAnswer: (answer: string) => void
+}
+
+function AnswerForm({
+  session,
+  onAnswer,
+  onNext,
+  nextLabel,
+}: Pick<PracticePanelProps, "session" | "onAnswer" | "onNext"> & {
+  nextLabel: string
+}) {
+  const [answer, setAnswer] = useState("")
+  const result = session.currentResult
+  const expectsKana = session.settings.displayType === "romaji"
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault()
+    if (result) onNext()
+    else if (answer.trim()) onAnswer(answer)
+  }
+
+  return (
+    <form className="answer-form" onSubmit={handleSubmit}>
+      <label htmlFor="answer-input">
+        {expectsKana ? "假名（平假名或片假名）" : "罗马音"}
+      </label>
+      <div className="answer-input-row">
+        <input
+          id="answer-input"
+          autoFocus
+          autoComplete="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          value={answer}
+          onChange={event => setAnswer(event.target.value)}
+          readOnly={!!result}
+          aria-invalid={result?.outcome === "incorrect"}
+          aria-describedby="answer-feedback"
+          onKeyDown={event => {
+            if (
+              event.key === "Enter" &&
+              (event.nativeEvent.isComposing || event.keyCode === 229)
+            )
+              event.preventDefault()
+          }}
+        />
+        <Button
+          type="submit"
+          className="primary-action"
+          disabled={!result && !answer.trim()}
+        >
+          {result ? nextLabel : "提交答案"}
+        </Button>
+      </div>
+      <div
+        id="answer-feedback"
+        className={`answer-feedback ${result?.outcome === "incorrect" ? "is-incorrect" : ""}`}
+        role="status"
+      >
+        {result &&
+          (result.outcome === "correct" ? (
+            <>
+              <Check size={16} />
+              正确
+            </>
+          ) : (
+            <>
+              <X size={16} />
+              错误
+            </>
+          ))}
+      </div>
+      {!result && (
+        <Button type="button" variant="ghost" onClick={onNext}>
+          跳过
+        </Button>
+      )}
+    </form>
+  )
 }
 
 export function PracticePanel({
-  currentKana,
-  displayType,
-  isAuto,
-  autoInterval,
-  isPaused,
-  position,
-  total,
-  round,
+  session,
   onNext,
-  onReset,
+  onFinish,
   onTogglePause,
+  onMark,
+  onAnswer,
 }: PracticePanelProps) {
   const [hintFor, setHintFor] = useState<string | null>(null)
-  const cardId = `${round}-${position}`
-  const showHint = hintFor === cardId
+  const { settings, currentResult } = session
+  const { displayType } = settings
+  const cardId = sessionCardId(session)
+  const currentKana = session.deck[session.index]
+  const isInput = settings.practiceMode === "input"
+  const isAuto = !isInput && settings.isAuto
+  const isPaused = session.pausedAt !== null
+  const showHint = !!currentResult || (!isInput && hintFor === cardId)
+  const isLast =
+    settings.roundCount > 0 &&
+    session.round === settings.roundCount &&
+    session.index + 1 === session.deck.length
+  const nextLabel = isLast ? "查看汇总" : "下一题"
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
         event.repeat ||
+        event.isComposing ||
         event.altKey ||
         event.ctrlKey ||
         event.metaKey ||
@@ -54,7 +146,7 @@ export function PracticePanel({
         )
       )
         return
-      if (event.code === "Space") {
+      if (event.code === "Space" && !isInput) {
         event.preventDefault()
         setHintFor(previous => (previous === cardId ? null : cardId))
       } else if (event.code === "ArrowRight" && !isAuto) {
@@ -67,27 +159,36 @@ export function PracticePanel({
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [cardId, isAuto, onNext, onTogglePause])
+  }, [cardId, isInput, isAuto, onNext, onTogglePause])
 
   return (
     <section className="practice-layout" aria-label="假名练习">
       <div className="practice-toolbar">
-        <Button variant="ghost" onClick={onReset}>
+        <Button variant="ghost" onClick={onFinish}>
           <ArrowLeft size={16} />
-          返回设置
+          结束练习
         </Button>
         <span className="practice-mode">
           <i />
           {displayLabels[displayType]}
           <span> / </span>
-          {isAuto ? (isPaused ? "已暂停" : "自动练习") : "手动练习"}
+          {isInput
+            ? "输入答案"
+            : isAuto
+              ? isPaused
+                ? "已暂停"
+                : "自动翻卡"
+              : "翻卡记忆"}
         </span>
       </div>
       <div className="practice-card panel">
         <div className="practice-card-header">
-          <span>第 {round.toString().padStart(2, "0")} 轮</span>
           <span>
-            <strong>{position.toString().padStart(2, "0")}</strong> / {total}
+            第 {session.round}{" "}
+            {settings.roundCount > 0 && `/ ${settings.roundCount}`} 轮
+          </span>
+          <span>
+            <strong>{session.index + 1}</strong> / {session.deck.length}
           </span>
         </div>
         <div
@@ -95,14 +196,18 @@ export function PracticePanel({
           role="progressbar"
           aria-label="本轮出题进度"
           aria-valuemin={0}
-          aria-valuemax={total}
-          aria-valuenow={position}
+          aria-valuemax={session.deck.length}
+          aria-valuenow={session.index + 1}
         >
-          <span style={{ width: `${(position / total) * 100}%` }} />
+          <span
+            style={{
+              width: `${((session.index + 1) / session.deck.length) * 100}%`,
+            }}
+          />
         </div>
         <div
           className={`practice-character ${displayType === "romaji" ? "is-romaji" : ""}`}
-          key={cardId}
+          key={`character-${cardId}`}
           lang={displayType === "romaji" ? "en" : "ja"}
         >
           {currentKana[displayType]}
@@ -123,42 +228,93 @@ export function PracticePanel({
             </div>
           )}
         </div>
-        <div className="practice-controls">
-          <Button
-            size="lg"
-            variant="outline"
-            aria-pressed={showHint}
-            onClick={() => setHintFor(showHint ? null : cardId)}
-          >
-            {showHint ? <EyeOff size={17} /> : <Eye size={17} />}
-            {showHint ? "隐藏提示" : "显示提示"}
-          </Button>
-          {isAuto ? (
-            <Button
-              size="lg"
-              className="primary-action"
-              onClick={onTogglePause}
+        {isInput ? (
+          <AnswerForm
+            key={`answer-${cardId}`}
+            session={session}
+            onAnswer={onAnswer}
+            onNext={onNext}
+            nextLabel={nextLabel}
+          />
+        ) : (
+          <>
+            <div className="practice-controls">
+              <Button
+                size="lg"
+                variant="outline"
+                aria-pressed={showHint}
+                disabled={!!currentResult}
+                onClick={() => setHintFor(showHint ? null : cardId)}
+              >
+                {showHint ? <EyeOff size={17} /> : <Eye size={17} />}
+                {showHint ? "隐藏提示" : "显示提示"}
+              </Button>
+              {isAuto ? (
+                <Button
+                  size="lg"
+                  className="primary-action"
+                  onClick={onTogglePause}
+                >
+                  {isPaused ? <Play size={17} /> : <Pause size={17} />}
+                  {isPaused ? "继续练习" : "暂停练习"}
+                </Button>
+              ) : (
+                <Button size="lg" className="primary-action" onClick={onNext}>
+                  {currentResult ? nextLabel : isLast ? "跳过并结束" : "跳过"}
+                  <ArrowRight size={17} />
+                </Button>
+              )}
+            </div>
+            <div
+              className="mastery-controls"
+              role="group"
+              aria-label="掌握情况"
             >
-              {isPaused ? <Play size={17} /> : <Pause size={17} />}
-              {isPaused ? "继续练习" : "暂停练习"}
-            </Button>
-          ) : (
-            <Button size="lg" className="primary-action" onClick={onNext}>
-              下一个
-              <ArrowRight size={17} />
-            </Button>
-          )}
-        </div>
-        {isAuto && <p className="practice-caption">每 {autoInterval} 秒切换</p>}
+              <Button
+                variant="outline"
+                disabled={!showHint || !!currentResult}
+                aria-pressed={currentResult?.outcome === "learning"}
+                onClick={() => onMark("learning")}
+              >
+                不熟悉
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!showHint || !!currentResult}
+                aria-pressed={currentResult?.outcome === "known"}
+                onClick={() => onMark("known")}
+              >
+                认识
+              </Button>
+            </div>
+            <p className="practice-caption" aria-live="polite">
+              {currentResult
+                ? currentResult.outcome === "known"
+                  ? "已标记：认识"
+                  : "已标记：不熟悉"
+                : isAuto
+                  ? `每 ${settings.autoInterval} 秒切换`
+                  : ""}
+            </p>
+          </>
+        )}
       </div>
       <div className="keyboard-hints">
-        <span>
-          <kbd>Space</kbd> 显示 / 隐藏提示
-        </span>
-        <span>
-          <kbd>{isAuto ? "P" : "→"}</kbd>{" "}
-          {isAuto ? "暂停 / 继续" : "下一个假名"}
-        </span>
+        {isInput ? (
+          <span>
+            <kbd>Enter</kbd> 提交 / 下一题
+          </span>
+        ) : (
+          <>
+            <span>
+              <kbd>Space</kbd> 显示 / 隐藏提示
+            </span>
+            <span>
+              <kbd>{isAuto ? "P" : "→"}</kbd>{" "}
+              {isAuto ? "暂停 / 继续" : "下一题"}
+            </span>
+          </>
+        )}
       </div>
     </section>
   )
