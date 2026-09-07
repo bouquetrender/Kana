@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 const fontSans = FontSans({
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -32,6 +32,7 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
+          forcedTheme="dark"
           defaultTheme="dark"
           enableSystem={false}
           disableTransitionOnChange

@@ -1,16 +1,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { ArrowLeft, ArrowRight, Play, Pause, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Play, Pause, Eye, EyeOff } from "lucide-react"
 import { type KanaChar, type DisplayType } from "@/lib/kana-data"
+import { displayLabels } from "@/lib/practice"
 
 interface PracticePanelProps {
-  currentKana: KanaChar | null
+  currentKana: KanaChar
   displayType: DisplayType
   isAuto: boolean
+  autoInterval: number
   isPaused: boolean
+  position: number
+  total: number
+  round: number
   onNext: () => void
   onReset: () => void
   onTogglePause: () => void
@@ -20,151 +24,142 @@ export function PracticePanel({
   currentKana,
   displayType,
   isAuto,
+  autoInterval,
   isPaused,
+  position,
+  total,
+  round,
   onNext,
   onReset,
   onTogglePause,
 }: PracticePanelProps) {
-  const [showHint, setShowHint] = useState(false)
-  const [hintContent, setHintContent] = useState<KanaChar | null>(null)
+  const [hintFor, setHintFor] = useState<string | null>(null)
+  const cardId = `${round}-${position}`
+  const showHint = hintFor === cardId
 
   useEffect(() => {
-    setShowHint(false)
-  }, [currentKana])
-
-  if (!currentKana) return null
-
-  const getDisplayText = () => {
-    switch (displayType) {
-      case "hiragana":
-        return currentKana.hiragana
-      case "katakana":
-        return currentKana.katakana
-      case "romaji":
-        return currentKana.romaji
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.repeat ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey
+      )
+        return
+      if (
+        event.target instanceof HTMLElement &&
+        event.target.closest(
+          "button, input, select, textarea, a, [contenteditable='true'], [role='slider'], [role='switch']"
+        )
+      )
+        return
+      if (event.code === "Space") {
+        event.preventDefault()
+        setHintFor(previous => (previous === cardId ? null : cardId))
+      } else if (event.code === "ArrowRight" && !isAuto) {
+        event.preventDefault()
+        onNext()
+      } else if (event.code === "KeyP" && isAuto) {
+        event.preventDefault()
+        onTogglePause()
+      }
     }
-  }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [cardId, isAuto, onNext, onTogglePause])
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen -margin-top-10 gap-4">
-      {/* 假名显示区域 */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentKana.hiragana}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="h-[420px] md:h-[470px] text-[22rem] md:text-[24rem] lg:text-[24rem] font-bold selecFt-none antialiase -mt-38"
-        >
-          {getDisplayText()}
-        </motion.div>
-      </AnimatePresence>
-
-      {/* 提示/答案区域 */}
-      <div className="h-16 flex items-center justify-center">
-        <AnimatePresence onExitComplete={() => setHintContent(null)}>
-          {showHint && hintContent && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.2 }}
-              className="flex items-center justify-center gap-6 text-3xl md:text-4xl text-foreground/80"
-            >
-              {displayType !== "hiragana" && <p>{hintContent.hiragana}</p>}
-              {displayType !== "katakana" && <p>{hintContent.katakana}</p>}
-              {displayType !== "romaji" && <p>{hintContent.romaji}</p>}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* 控制按钮 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="flex flex-wrap items-center justify-center gap-3"
-      >
-        <Button
-          onClick={() => {
-            if (showHint) {
-              setShowHint(false)
-            } else {
-              setHintContent(currentKana)
-              setShowHint(true)
-            }
-          }}
-          size="lg"
-          variant="outline"
-          className="gap-2 cursor-pointer"
-        >
-          {showHint ? (
-            <>
-              <EyeOff className="w-5 h-5" />
-              隐藏提示
-            </>
-          ) : (
-            <>
-              <Eye className="w-5 h-5" />
-              显示提示
-            </>
-          )}
+    <section className="practice-layout" aria-label="假名练习">
+      <div className="practice-toolbar">
+        <Button variant="ghost" onClick={onReset}>
+          <ArrowLeft size={16} />
+          返回设置
         </Button>
-        {isAuto && (
+        <span className="practice-mode">
+          <i />
+          {displayLabels[displayType]}
+          <span> / </span>
+          {isAuto ? (isPaused ? "已暂停" : "自动练习") : "手动练习"}
+        </span>
+      </div>
+      <div className="practice-card panel">
+        <div className="practice-card-header">
+          <span>第 {round.toString().padStart(2, "0")} 轮</span>
+          <span>
+            <strong>{position.toString().padStart(2, "0")}</strong> / {total}
+          </span>
+        </div>
+        <div
+          className="practice-progress"
+          role="progressbar"
+          aria-label="本轮出题进度"
+          aria-valuemin={0}
+          aria-valuemax={total}
+          aria-valuenow={position}
+        >
+          <span style={{ width: `${(position / total) * 100}%` }} />
+        </div>
+        <div
+          className={`practice-character ${displayType === "romaji" ? "is-romaji" : ""}`}
+          key={cardId}
+          lang={displayType === "romaji" ? "en" : "ja"}
+        >
+          {currentKana[displayType]}
+        </div>
+        <div className="hint-area" aria-live="polite">
+          {showHint && (
+            <div className="hint-content">
+              {(["hiragana", "katakana", "romaji"] as DisplayType[])
+                .filter(type => type !== displayType)
+                .map(type => (
+                  <div key={type}>
+                    <span>{displayLabels[type]}</span>
+                    <strong lang={type === "romaji" ? "en" : "ja"}>
+                      {currentKana[type]}
+                    </strong>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+        <div className="practice-controls">
           <Button
-            onClick={onTogglePause}
             size="lg"
             variant="outline"
-            className="gap-2 cursor-pointer"
+            aria-pressed={showHint}
+            onClick={() => setHintFor(showHint ? null : cardId)}
           >
-            {isPaused ? (
-              <>
-                <Play className="w-5 h-5" />
-                继续
-              </>
-            ) : (
-              <>
-                <Pause className="w-5 h-5" />
-                暂停
-              </>
-            )}
+            {showHint ? <EyeOff size={17} /> : <Eye size={17} />}
+            {showHint ? "隐藏提示" : "显示提示"}
           </Button>
-        )}
-
-        {!isAuto && (
-          <Button
-            onClick={onNext}
-            size="lg"
-            className="gap-2 cursor-pointer"
-          >
-            下一个
-          </Button>
-        )}
-
-        <Button
-          onClick={onReset}
-          size="lg"
-          variant="destructive"
-          className="gap-2 cursor-pointer"
-        >
-          重新开始
-        </Button>
-      </motion.div>
-
-      {/* 提示信息 */}
-      {/* <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="text-sm text-foreground/60 text-center"
-      >
-        {displayType === "hiragana" && "平假名模式"}
-        {displayType === "katakana" && "片假名模式"}
-        {displayType === "romaji" && "罗马音模式"}
-      </motion.div> */}
-    </div>
+          {isAuto ? (
+            <Button
+              size="lg"
+              className="primary-action"
+              onClick={onTogglePause}
+            >
+              {isPaused ? <Play size={17} /> : <Pause size={17} />}
+              {isPaused ? "继续练习" : "暂停练习"}
+            </Button>
+          ) : (
+            <Button size="lg" className="primary-action" onClick={onNext}>
+              下一个
+              <ArrowRight size={17} />
+            </Button>
+          )}
+        </div>
+        {isAuto && <p className="practice-caption">每 {autoInterval} 秒切换</p>}
+      </div>
+      <div className="keyboard-hints">
+        <span>
+          <kbd>Space</kbd> 显示 / 隐藏提示
+        </span>
+        <span>
+          <kbd>{isAuto ? "P" : "→"}</kbd>{" "}
+          {isAuto ? "暂停 / 继续" : "下一个假名"}
+        </span>
+      </div>
+    </section>
   )
 }
-
