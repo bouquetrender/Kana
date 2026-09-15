@@ -59,6 +59,7 @@ export function SettingsPanel({
           </span>
           <h2 id="settings-title">练习设置</h2>
         </div>
+        <p className="panel-description">为这一次专注，做一点准备。</p>
         <div className="settings-section">
           <Label id="display-label" className="field-label">
             显示类型
@@ -160,6 +161,7 @@ export function SettingsPanel({
           </Label>
           <div
             className="mode-options"
+            data-mode={settings.practiceMode}
             role="group"
             aria-labelledby="practice-mode-label"
           >
@@ -267,9 +269,14 @@ export function SettingsPanel({
           <span className="count-badge">{availableKana.length} 已选</span>
         </div>
         <div className="chart-description">
+          <p>
+            {isCustom
+              ? "点击选择假名，或用鼠标拖动框选。"
+              : "高亮的假名将出现在本次练习中。"}
+          </p>
           <span>
             <i />
-            练习范围
+            已选
           </span>
         </div>
         <KanaGrid

@@ -162,7 +162,7 @@ export function PracticePanel({
   }, [cardId, isInput, isAuto, onNext, onTogglePause])
 
   return (
-    <section className="practice-layout" aria-label="假名练习">
+    <section className="practice-layout view-enter" aria-label="假名练习">
       <div className="practice-toolbar">
         <Button variant="ghost" onClick={onFinish}>
           <ArrowLeft size={16} />
@@ -201,7 +201,7 @@ export function PracticePanel({
         >
           <span
             style={{
-              width: `${((session.index + 1) / session.deck.length) * 100}%`,
+              transform: `scaleX(${(session.index + 1) / session.deck.length})`,
             }}
           />
         </div>
@@ -294,7 +294,7 @@ export function PracticePanel({
                   : "已标记：不熟悉"
                 : isAuto
                   ? `每 ${settings.autoInterval} 秒切换`
-                  : ""}
+                  : "先回想读音，再显示提示并标记掌握情况。"}
             </p>
           </>
         )}

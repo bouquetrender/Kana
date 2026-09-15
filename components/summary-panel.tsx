@@ -25,7 +25,7 @@ export function SummaryPanel({
   const isInput = session.settings.practiceMode === "input"
   const planned = session.settings.roundCount * session.pool.length
   return (
-    <section className="summary-layout" aria-labelledby="summary-title">
+    <section className="summary-layout view-enter" aria-labelledby="summary-title">
       <div className="practice-toolbar">
         <Button variant="ghost" onClick={onReset}>
           <ArrowLeft size={16} />
@@ -37,6 +37,7 @@ export function SummaryPanel({
         </span>
       </div>
       <div className="panel summary-card">
+        <p className="eyebrow">每一次练习，都算数</p>
         <h1 id="summary-title">练习汇总</h1>
         <div className="summary-overview">
           <div>
@@ -96,7 +97,7 @@ export function SummaryPanel({
               ))}
             </div>
           ) : (
-            <p>无</p>
+            <p>本次没有待复习的假名。</p>
           )}
         </div>
         <div className="summary-actions">

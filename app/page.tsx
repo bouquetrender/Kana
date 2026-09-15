@@ -1,6 +1,6 @@
 "use client"
 
-import { Moon } from "lucide-react"
+import { useEffect } from "react"
 import { SettingsPanel } from "@/components/settings-panel"
 import { PracticePanel } from "@/components/practice-panel"
 import { SummaryPanel } from "@/components/summary-panel"
@@ -8,6 +8,22 @@ import { useSavedSettings } from "@/lib/use-saved-settings"
 import { usePractice } from "@/lib/use-practice"
 
 export default function Home() {
+  useEffect(() => {
+    const useKeyboard = () => {
+      document.documentElement.dataset.inputMethod = "keyboard"
+    }
+    const usePointer = () => {
+      document.documentElement.dataset.inputMethod = "pointer"
+    }
+    document.addEventListener("keydown", useKeyboard, true)
+    document.addEventListener("pointerdown", usePointer, true)
+    return () => {
+      document.removeEventListener("keydown", useKeyboard, true)
+      document.removeEventListener("pointerdown", usePointer, true)
+      delete document.documentElement.dataset.inputMethod
+    }
+  }, [])
+
   const {
     settings,
     setSettings,
@@ -35,14 +51,9 @@ export default function Home() {
           <span className="brand-mark" lang="ja">
             か
           </span>
-          <span>
-            Kana<span className="brand-dot">.</span>
-          </span>
+          <span>Kana</span>
         </a>
-        <span className="header-caption">日语假名练习室</span>
-        {/* <span className="theme-indicator">
-          <Moon size={14} /> 深色模式
-        </span> */}
+        <span className="header-caption">日语假名练习</span>
       </header>
       <main className="main-content">
         {storageError && (
@@ -77,9 +88,16 @@ export default function Home() {
             onAnswer={answer}
           />
         ) : (
-          <>
+          <div className="setup-view view-enter">
             <section className="page-intro">
-              <h1>假名练习</h1>
+              <div>
+                <p className="eyebrow">一点一滴，自然熟悉</p>
+                <h1>假名练习</h1>
+                <p className="intro-description">选好范围，按自己的节奏开始。</p>
+              </div>
+              <span className="intro-kana" lang="ja" aria-hidden="true">
+                あ
+              </span>
             </section>
             <SettingsPanel
               settings={settings}
@@ -94,7 +112,7 @@ export default function Home() {
                   .length
               }
             />
-          </>
+          </div>
         )}
       </main>
     </div>

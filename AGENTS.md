@@ -80,3 +80,13 @@ pnpm start                    # 启动已构建的应用
 - UI 修改检查相关桌面、移动端及键盘交互。未实际验证的项目需明确说明。
 - 完成前检查差异范围和 `git diff --check`。验证通过后不无故重复执行同一检查。
 - 区分本地构建成功、推送成功和线上部署成功，不能用前者代替后者。
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
