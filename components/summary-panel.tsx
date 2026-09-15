@@ -37,7 +37,6 @@ export function SummaryPanel({
         </span>
       </div>
       <div className="panel summary-card">
-        <p className="eyebrow">每一次练习，都算数</p>
         <h1 id="summary-title">练习汇总</h1>
         <div className="summary-overview">
           <div>

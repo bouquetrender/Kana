@@ -91,13 +91,7 @@ export default function Home() {
         ) : (
           <div className="setup-view view-enter">
             <section className="page-intro">
-              <div>
-                <p className="eyebrow">一点一滴，自然熟悉</p>
-                <h1>假名练习</h1>
-                <p className="intro-description">
-                  选好范围，按自己的节奏开始。
-                </p>
-              </div>
+              <h1>假名练习</h1>
               <span className="intro-kana" lang="ja" aria-hidden="true">
                 あ
               </span>

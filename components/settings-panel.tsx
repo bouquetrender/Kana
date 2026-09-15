@@ -59,7 +59,6 @@ export function SettingsPanel({
           </span>
           <h2 id="settings-title">练习设置</h2>
         </div>
-        <p className="panel-description">为这一次专注，做一点准备。</p>
         <div className="settings-section">
           <Label id="display-label" className="field-label">
             显示类型
