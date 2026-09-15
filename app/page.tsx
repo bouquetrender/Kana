@@ -1,28 +1,29 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { SettingsPanel } from "@/components/settings-panel"
-import { PracticePanel } from "@/components/practice-panel"
-import { SummaryPanel } from "@/components/summary-panel"
-import { useSavedSettings } from "@/lib/use-saved-settings"
-import { usePractice } from "@/lib/use-practice"
+import { useEffect } from "react";
+import { SettingsPanel } from "@/components/settings-panel";
+import { PracticePanel } from "@/components/practice-panel";
+import { SummaryPanel } from "@/components/summary-panel";
+import { useSavedSettings } from "@/lib/use-saved-settings";
+import { usePractice } from "@/lib/use-practice";
 
 export default function Home() {
   useEffect(() => {
     const useKeyboard = () => {
-      document.documentElement.dataset.inputMethod = "keyboard"
-    }
+      document.documentElement.dataset.inputMethod = "keyboard";
+    };
     const usePointer = () => {
-      document.documentElement.dataset.inputMethod = "pointer"
-    }
-    document.addEventListener("keydown", useKeyboard, true)
-    document.addEventListener("pointerdown", usePointer, true)
+      document.documentElement.dataset.inputMethod = "pointer";
+    };
+
+    document.addEventListener("keydown", useKeyboard, true);
+    document.addEventListener("pointerdown", usePointer, true);
     return () => {
-      document.removeEventListener("keydown", useKeyboard, true)
-      document.removeEventListener("pointerdown", usePointer, true)
-      delete document.documentElement.dataset.inputMethod
-    }
-  }, [])
+      document.removeEventListener("keydown", useKeyboard, true);
+      document.removeEventListener("pointerdown", usePointer, true);
+      delete document.documentElement.dataset.inputMethod;
+    };
+  }, []);
 
   const {
     settings,
@@ -31,7 +32,7 @@ export default function Home() {
     recordMastery,
     isLoaded,
     storageError,
-  } = useSavedSettings()
+  } = useSavedSettings();
   const {
     pool,
     session,
@@ -42,7 +43,7 @@ export default function Home() {
     togglePause,
     finish,
     reset,
-  } = usePractice(settings, mastery, recordMastery)
+  } = usePractice(settings, mastery, recordMastery);
 
   return (
     <div className="app-shell">
@@ -67,12 +68,12 @@ export default function Home() {
           <SummaryPanel
             session={session}
             onReset={() => {
-              reset()
-              window.scrollTo(0, 0)
+              reset();
+              window.scrollTo(0, 0);
             }}
-            onRestart={selection => {
-              start(selection)
-              window.scrollTo(0, 0)
+            onRestart={(selection) => {
+              start(selection);
+              window.scrollTo(0, 0);
             }}
           />
         ) : session ? (
@@ -80,8 +81,8 @@ export default function Home() {
             session={session}
             onNext={next}
             onFinish={() => {
-              finish()
-              window.scrollTo(0, 0)
+              finish();
+              window.scrollTo(0, 0);
             }}
             onTogglePause={togglePause}
             onMark={mark}
@@ -93,7 +94,9 @@ export default function Home() {
               <div>
                 <p className="eyebrow">一点一滴，自然熟悉</p>
                 <h1>假名练习</h1>
-                <p className="intro-description">选好范围，按自己的节奏开始。</p>
+                <p className="intro-description">
+                  选好范围，按自己的节奏开始。
+                </p>
               </div>
               <span className="intro-kana" lang="ja" aria-hidden="true">
                 あ
@@ -103,12 +106,12 @@ export default function Home() {
               settings={settings}
               onSettingsChange={setSettings}
               onStart={() => {
-                start()
-                window.scrollTo(0, 0)
+                start();
+                window.scrollTo(0, 0);
               }}
               availableKana={pool}
               reviewCount={
-                Object.values(mastery).filter(status => status === "learning")
+                Object.values(mastery).filter((status) => status === "learning")
                   .length
               }
             />
@@ -116,5 +119,5 @@ export default function Home() {
         )}
       </main>
     </div>
-  )
+  );
 }
